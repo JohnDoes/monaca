@@ -1,0 +1,692 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: content: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'; media-src * blob:">
+
+    <script src="components/loader.js"></script>
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+        <style>
+            body{
+                background: #000000;
+            }
+            .site-header{
+                background: #fff;
+                display: flex;
+                padding: 10px 10px;
+                position: fixed;
+                justify-content: space-between;
+                width: 95%;
+            }
+            .content{
+                line-height: 1.2;
+                margin: 0 auto;
+                padding-top: 150px;
+                width: 95%;
+                background: #000000;
+                color:#ffffff;
+            }
+            .content p{
+                margin-bottom: 5px;
+            }
+            .site-footer{
+                background: #333;
+                padding: 80px 0;
+            }
+        </style>
+
+</head>
+<body>
+    <header class="site-header">
+        <nav class="gnav">
+            <div class="gnav__menu">
+                <div>
+                    <button id="sw1">再生</button>
+                    <button id="sw2">戻る</button>
+                    <button id="sw3">進む</button>
+                    <button id="sw4">次話</button>
+                    <button id="sw5">停止</button>
+                </div>
+                <div style="float:left">
+                    言語：
+                    <select id="lng" colspan="2">
+                        <option value="ja">ja</option>
+                        <option value="en-ja" selected>en-ja</option>
+                        <option value="fr-ja">fr-ja</option>
+                        <option value="de-ja">de-ja</option>
+                        <option value="ru-ja">ru-ja</option>
+                        <option value="zh-ja">zh-ja</option>
+                        <option value="kr-ja">kr-ja</option>
+                        <option value="ar-ja">ar-ja</option>
+                        <option value="it-ja">it-ja</option>
+                        <option value="fi-ja">fi-ja</option>
+                        <option value="en">en</option>
+                        <option value="fr">fr</option>
+                        <option value="de">de</option>
+                        <option value="ru">ru</option>
+                        <option value="zh">zh</option>
+                        <option value="kr">kr</option>
+                        <option value="ar">ar</option>
+                        <option value="it">it</option>
+                        <option value="fi">fi</option>
+                    </select>
+            </div>
+            <div style="float:left">
+                速度：
+                <select id="pitch">
+                    <option value="0.50">x0.5</option>
+                    <option value="0.75">x0.75</option>
+                    <option value="0.90">x0.9</option>
+                    <option value="1.00" selected>x1.0</option>
+                    <option value="1.10">x1.1</option>
+                    <option value="1.25">x1.25</option>
+                    <option value="1.50">x1.5</option>
+                    <option value="1.75">x1.75</option>
+                    <option value="2.00">x2.0</option>
+                    <option value="2.50">x2.5</option>
+                </select>
+            </div><br />
+            <div>
+                <p>目次URL:<input id="url" type="text" style="width: 70%;" value="https://kakuyomu.jp/works/16816700428600671727"></input></p>
+                <p>第<input id="num" type="number" style="width: 100px;" value="1">話<button id="ck">表示</button><button id="sn">なろう検索</button><button id="sk">カクヨム検索</button><button id="sg">グーグル</button></p>
+            </div>
+            </div>
+        </nav>
+    </header>
+    <div class="hero"><img src="images/hero.jpg" alt="hero"></div>
+    <div class="content">
+        <div id="origin">
+        </div>
+    </div>
+</div>
+<script>
+
+const event = window.cordova ? 'deviceready' : 'DOMContentLoaded';
+document.addEventListener(event, () => {
+
+    // getnovel variation
+    // novelUrl
+    var nUrl = "";
+    var nNum = 1;
+    var kc = /kakuyomu/;
+    var nc = /ncode/;
+    // ncmbAPIキー
+    // console.log("load ncmb api key");
+    var applicationKey = "0d5966f480263439a4ab14a28a26cd0d074c4448b12e7554043d9c479ab745a3";
+    var clientKey = "6425a24f12ad75095143739f261570511c979a78753fe2a590f5297ba902c0b2";
+    // SDKの初期化
+    // console.log("new ncmb");
+    var ncmb = new NCMB(applicationKey, clientKey);
+
+    //speaking setting
+    var api2 = "AIzaSyB2gSUJrtuVm6U7Dh_-idq19KL7RtBpvAg";
+    var text = '吾輩は猫である';
+    var fromLang = 'ja';
+    var toLang = 'ru';
+    var readNum = 0;
+    var speaking = false;
+    var numCng = false;
+
+    //translate setting
+    var lang, lang1, lang2, lang3, lang4;
+    var api1 = 'AIzaSyBSpuXyxIVjzO0Jodh4gQhFO1zppKvRIjQ';
+
+
+
+    //set lang
+    function getLang() {
+        lang = document.getElementById("lng").value;
+        //console.log("set language:", lang);
+        switch(lang){
+           case "ja":
+               lang1 = "ja";
+               lang2 = "ja";
+               lang3 = "ja-JP";
+               lang4 = "ja-JP";
+               break;
+           case "en-ja":
+               lang1 = "ja";
+               lang2 = "en";
+               lang3 = "ja-JP";
+               lang4 = "en-US";
+               break;
+           case "fr-ja":
+               lang1 = "ja";
+               lang2 = "fr";
+               lang3 = "ja-JP";
+               lang4 = "fr-FR";
+               break;
+           case "de-ja":
+               lang1 = "ja";
+               lang2 = "de";
+               lang3 = "ja-JP";
+               lang4 = "de-DE";
+               break;
+           case "ru-ja":
+               lang1 = "ja";
+               lang2 = "ru";
+               lang3 = "ja-JP";
+               lang4 = "ru-RU";
+               break;
+           case "zh-ja":
+               lang1 = "ja";
+               lang2 = "zh";
+               lang3 = "ja-JP";
+               lang4 = "zh-CN";
+               break;
+           case "kr-ja":
+               lang1 = "ja";
+               lang2 = "kr";
+               lang3 = "ja-JP";
+               lang4 = "kr-KR";
+               break;
+           case "ar-ja":
+               lang1 = "ja";
+               lang2 = "ar";
+               lang3 = "ja-JP";
+               lang4 = "ar-EG";
+               break;
+           case "it-ja":
+               lang1 = "ja";
+               lang2 = "it";
+               lang3 = "ja-JP";
+               lang4 = "it-IT";
+               break;
+           case "fi-ja":
+               lang1 = "ja";
+               lang2 = "fi";
+               lang3 = "ja-JP";
+               lang4 = "fi-FI";
+               break;
+           case "en":
+               lang1 = "en";
+               lang2 = "en";
+               lang3 = "en-US";
+               lang4 = "en-US";
+               break;
+           case "fr":
+               lang1 = "fr";
+               lang2 = "fr";
+               lang3 = "fr-FR";
+               lang4 = "fr-FR";
+               break;
+           case "de":
+               lang1 = "de";
+               lang2 = "de";
+               lang3 = "de-DE";
+               lang4 = "de-DE";
+               break;
+           case "ru":
+               lang1 = "ru";
+               lang2 = "ru";
+               lang3 = "ru-RU";
+               lang4 = "ru-RU";
+               break;
+           case "zh":
+               lang1 = "zh";
+               lang2 = "zh";
+               lang3 = "zh-CN";
+               lang4 = "zh-CN";
+               break;
+           case "kr":
+               lang1 = "kr";
+               lang2 = "kr";
+               lang3 = "kr-KR";
+               lang4 = "kr-KR";
+               break;
+           case "ar":
+               lang1 = "ar";
+               lang2 = "ar";
+               lang3 = "ar-EG";
+               lang4 = "ar-EG";
+               break;
+           case "it":
+               lang1 = "it";
+               lang2 = "it";
+               lang3 = "it-IT";
+               lang4 = "it-IT";
+               break;
+           case "fi":
+               lang1 = "fi";
+               lang2 = "fi";
+               lang3 = "fi-FI";
+               lang4 = "fi-FI";
+               break;
+            default:
+               lang1 = "ja";
+               lang2 = "en";
+               lang3 = "ja-JP";
+               lang4 = "en-US";
+               break;
+       }
+    }
+    
+    
+    //get data and write novel
+
+    function trans(t, b) {
+        getLang();
+        //console.log("tr_start",lang1, lang2, lang3, lang4);
+        //console.log(document.getElementById("origin"));
+        document.getElementById("origin").innerHTML = "";
+        var j = 0;
+        for(let i = 0; i < t.length; i++) {
+            //console.log("tr_start_title");
+            let dt = document.createElement('p');
+            dt.insertAdjacentHTML('beforeend',t[i]);
+            dt.id = j;
+            dt.className = lang3;
+            dt.style.backgroundColor = "#000000";
+            // 翻訳用原稿取得
+            text = dt.textContent;
+            //もともとifなし
+            if(lang1 == "ja"){
+                //console.log("tr_start_title_ja");
+                j++;
+                document.getElementById("origin").appendChild(dt);
+            }
+            //翻訳文記入
+            if(lang2 != "ja"){
+                //console.log("tr_start_title_foreign");
+    
+    
+                let xhr = new XMLHttpRequest(); 
+                // 翻訳
+                const URL = "https://translation.googleapis.com/language/translate/v2?key="+api1+
+                    "&q="+encodeURI(text)+"&source=ja&target="+lang2+"";
+                //console.log(URL);
+
+                xhr.open("POST", URL, false);
+                // xhr.responseType = 'json';
+                xhr.onload = (e) => {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            const res = JSON.parse(xhr.responseText); 
+                            //console.log(res["data"]["translations"][0]["translatedText"]);
+                            scr = res["data"]["translations"][0]["translatedText"];
+                            let tx = scr;
+                            let dt = document.createElement('p');
+                            dt.insertAdjacentHTML('beforeend', 
+                            tx);
+                            dt.id = j;
+                            dt.className = lang4;
+                            dt.style.backgroundColor = "#000000";
+                            //console.log("title_foreign", tx, dt);
+                            //text = dt.textContent;
+                            j++;
+                            document.getElementById("origin").appendChild(dt);            
+                        } else {
+                            console.error(xhr.statusText);
+                        }
+                    }
+                };
+                xhr.onerror = (e) => {
+                    console.error(xhr.statusText);
+                };
+                xhr.send(null);
+            
+    
+                /*
+                let tx = gtl(text, lang2);
+                let dt = document.createElement('p');
+                dt.insertAdjacentHTML('beforeend', tx);
+                dt.id = j;
+                dt.class = lang4;
+                console.log("title_foreign", tx, dt);
+                //text = dt.textContent;
+                j++;
+                document.getElementById("origin").appendChild(dt);
+                */
+            }
+        }
+        for(let i = 0; i < b.length; i++) {
+            //console.log("tr_honbun_start");
+    
+            let dt = document.createElement('p');
+            dt.insertAdjacentHTML('beforeend',b[i]);
+            dt.id = j;
+            dt.className = lang3;
+            dt.style.backgroundColor = "#000000";
+            // 翻訳用原稿取得
+            text = dt.textContent;
+            //もともとifなし
+            if(lang1 == "ja"){
+                j++;
+                //console.log("honbun_ja");
+                document.getElementById("origin").appendChild(dt);
+            }
+            //翻訳文記入
+            if(lang2 != "ja"){
+                //console.log("tr_honbun_foreign");
+    
+    
+                let xhr = new XMLHttpRequest(); 
+                // 翻訳
+                const URL = "https://translation.googleapis.com/language/translate/v2?key="+api1+
+                    "&q="+encodeURI(text)+"&source=ja&target="+lang2+"";
+                //console.log(URL);
+                xhr.open("POST", URL, false);
+                // xhr.responseType = 'json';
+                xhr.onload = (e) => {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            const res = JSON.parse(xhr.responseText); 
+                            //console.log(res["data"]["translations"][0]["translatedText"]);
+                            scr = res["data"]["translations"][0]["translatedText"];
+                            let tx = scr;
+                            let dt = document.createElement('p');
+                            dt.insertAdjacentHTML('beforeend', tx);
+                            dt.id = j;
+                            dt.className = lang4;
+                            dt.style.backgroundColor = "#000000";
+                            //console.log("honbun_foreign", tx, dt);
+                            //text = dt.textContent;
+                            j++;
+                            document.getElementById("origin").appendChild(dt);            
+                        } else {
+                            console.error(xhr.statusText);
+                        }
+                    }
+                };
+                xhr.onerror = (e) => {
+                    console.error(xhr.statusText);
+                };
+                xhr.send(null);
+    
+            }
+            }
+            if(speaking){
+                console.log("load and speak");
+                speaking = false;
+                setTimeout(() => {
+                    speaking = true;
+                    play();
+                }, 2000);
+        }
+    }
+            
+
+    //getNoveldata
+    function kakuload() {
+        //console.log("kakuload_start", nUrl, nNum);
+        // メソッドチェーンでクエリストリングを付与し実行
+        ncmb.Script
+            .query({"url": nUrl, "num": nNum.toString()})      // クエリストリングを指定
+            .exec("GET", "kakuI.js")
+            .then(function(res){
+                //console.log("kakuI_end", JSON.parse(res.body).body);
+                // console.log("ck3", JSON.parse(res.body).body[parseInt(nNum) - 1]);
+    
+                // メソッドチェーンでクエリストリングを付与し実行
+                ncmb.Script
+                    //.query({"url": "https://kakuyomu.jp" + JSON.parse(res.body).body[parseInt(nNum) - 1]})      // クエリストリングを指定
+                    .query({"url": "https://kakuyomu.jp" + JSON.parse(res.body).body})      // クエリストリングを指定
+                    .exec("GET", "kaku.js")
+                    .then(function(res){
+                        // console.log("kaku_end", JSON.parse(res.body).title, JSON.parse(res.body).body);
+                        trans(JSON.parse(res.body).title, JSON.parse(res.body).body);
+                    })
+                    .catch(function(err){
+                        console.log("kaku_error", err);
+                    });
+            })
+            .catch(function(err){
+                console.log("kakuI_error", err);
+            });
+    
+    }
+        
+    function narouload() {
+        // console.log("narouload_start");
+    
+        // メソッドチェーンでクエリストリングを付与し実行
+        ncmb.Script
+            .query({"url": nUrl + nNum.toString() + "/"})      // クエリストリングを指定
+            .exec("GET", "narou.js")
+            .then(function(res){
+                // console.log("narou_end", JSON.parse(res.body).body);
+                trans(JSON.parse(res.body).title, JSON.parse(res.body).body);
+            })
+            .catch(function(err){
+                // console.log("narou", err);
+            });
+    }
+    
+    function loadPage() {
+        readNum = 0;
+        //speaking = false;
+        numCng = false;
+        //console.log("load get novels");
+        nUrl = document.getElementById("url").value;
+        nNum = parseInt(document.getElementById("num").value);
+        nUrl = nUrl.toString();
+        // console.log("loadPage_start");
+        //console.log(kc.exec(nUrl));
+        //console.log(nc.exec(nUrl));
+        if(nUrl.match(kc)) {
+            kakuload();
+        }
+    
+        if(nUrl.match(nc)){
+            narouload();
+        }
+        $("html,body").animate({scrollTop:0});        
+    }
+    
+
+
+    //読み上げ
+    // 音声合成
+    function speak() {
+        //console.log("speak_start");
+        var l = "ja-JP";
+        var t = "読み上げられません";
+        var s = "1.00";
+        var pattern = /[0-9a-zA-Zぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠_]/;
+
+
+        try {
+            var l = document.getElementById(String(readNum)).getAttribute("class");
+            // l = l.toString();
+            var t = document.getElementById(String(readNum)).textContent;
+            // change backgroud color
+            document.getElementById(String(readNum)).style.backgroundColor = "#55AA55";
+            //$("html,body").animate({scrollTop:$('#'+String(readNum)).offset().top - 300});
+            // t = t.toString();
+            var s = document.getElementById("pitch").value;
+            // s = s.toString();
+            // console.log("set script", l, t, s);
+
+
+            if(t.match(pattern)){
+                const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key="+api2+"";
+                const data = {
+                    "input": {
+                    "text": t
+                    },
+                    "voice": {
+                    "languageCode": l
+                    },
+                    "audioConfig": {
+                    "audioEncoding": "MP3",
+                    "speaking_rate": s,
+                    "pitch": "0.00"               
+                    }
+                }
+                const otherparam={
+                    headers: {
+                    "content-type": "application/json; charset=UTF-8"
+                    },
+                    body: JSON.stringify(data),
+                    method: "POST"
+                }
+                fetch(url, otherparam)
+                    .then(data=>{return data.json()})
+                    .then(res=>{
+                        //console.log("speech res");
+                    try {
+                        var blobUrl = base64ToBlobUrl(res.audioContent)
+                        var audio = new Audio()
+                        audio.src = blobUrl
+                        audio.play()
+                        audio.onended = (event) => {
+                            document.getElementById(String(readNum)).style.backgroundColor = "#000000";
+                            if(numCng && speaking) {
+                                numCng = false;
+                                speak();
+                            }else if(speaking){
+                                readNum = readNum + 1;
+                                speak();
+                            }
+                        };
+                    } catch(e) {
+                        console.log(e)
+                    }
+                    })
+                    .catch(error=>alert(error))  
+
+                    }else{
+                    document.getElementById(String(readNum)).style.backgroundColor = "#000000";
+                    if(numCng && speaking) {
+                        numCng = false;
+                        speak();
+                    }else if(speaking){
+                        readNum = readNum + 1;
+                        speak();
+                    }
+            }
+
+
+        } catch (error) {
+            console.error(error);
+            // speaking = false;
+            next();
+        }
+    }
+
+    // Base64 → BlobUrl
+    function base64ToBlobUrl(base64) {
+        var bin = atob(base64.replace(/^.*,/, ''))
+        var buffer = new Uint8Array(bin.length)
+        for (let i = 0; i < bin.length; i++ ) {
+            buffer[i] = bin.charCodeAt(i)
+        }
+        return window.URL.createObjectURL(new Blob([buffer.buffer], {type: "audio/wav"}))
+    }
+    function play() {
+        //console.log("play");
+        numCng = false;
+        if(speaking){
+            speak();
+        }else {
+            speaking = true;
+            speak();
+        }
+    }
+    function fore() {
+        //console.log("fore");
+        document.getElementById(String(readNum)).style.backgroundColor = "#000000";
+        numCng = true;
+        readNum = readNum + 1;
+        document.getElementById(String(readNum)).style.backgroundColor = "#55AA55";
+        $("html,body").animate({scrollTop:$('#'+String(readNum)).offset().top - 300});
+    }
+    function back() {
+        //console.log("back");
+        document.getElementById(String(readNum)).style.backgroundColor = "#000000";
+        numCng = true;
+        readNum = readNum - 1;
+        document.getElementById(String(readNum)).style.backgroundColor = "#55AA55";
+        $("html,body").animate({scrollTop:$('#'+String(readNum)).offset().top - 300});
+    }
+    function stop() {
+        //console.log("stop");
+        speaking = false;
+    }
+    function next() {
+        // console.log("next");
+        // speaking = false;
+        nNum = nNum + 1;
+        document.getElementById("num").value = nNum;
+        nUrl = document.getElementById("url").value;
+        nNum = document.getElementById("num").value;
+        loadPage();
+    }
+
+
+    //browser
+    function narouBrowse(){
+        //https://yomou.syosetu.com/search.php
+        var ref = cordova.InAppBrowser.open('https://yomou.syosetu.com/search.php', '_blank', 'location=yes');
+        ref.addEventListener('loadstop', loadStopCallBack);
+        inAppBrowserRef.addEventListener('message', messageCallBack);
+    }
+    function kakuyomuBrowse(){
+        //https://kakuyomu.jp/explore
+        var ref = cordova.InAppBrowser.open('https://kakuyomu.jp/explore', '_blank', 'location=yes');
+        ref.addEventListener('loadstop', loadStopCallBack);
+    }
+    function googleBrowse(){
+        //https://kakuyomu.jp/explore
+        var ref = cordova.InAppBrowser.open('https://www.google.com', '_blank', 'location=yes');
+        ref.addEventListener('loadstop', loadStopCallBack);
+    }
+    function loadStopCallBack() {
+        if (ref != undefined) {
+        ref.executeScript({ code: "\
+            var message = window.location.href;\
+            var messageObj = {my_message: message};\
+            var stringifiedMessageObj = JSON.stringify(messageObj);\
+            webkit.messageHandlers.cordova_iab.postMessage(stringifiedMessageObj);"
+        });
+        }
+        ref.show();
+    }
+    function messageCallBack(params){
+        var mUrl = params.data.my_message;
+        if(mUrl.match(/https:\/\/kakuyomu\.jp\/works\/^[a-zA-Z0-9]+$/)){
+            document.getElementById("url").value = mUrl;
+        }
+        if(mUrl.match(/https:\/\/ncode\.syosetu\.com\/^[a-zA-Z0-9]+$/)){
+            document.getElementById("url").value = mUrl;
+        }
+    }
+
+    document.getElementById("ck").addEventListener("click", loadPage, false);
+    //loadPage();
+
+    document.getElementById("sw1").addEventListener("click", play, false);
+    document.getElementById("sw2").addEventListener("click", back, false);
+    document.getElementById("sw3").addEventListener("click", fore, false);
+    document.getElementById("sw4").addEventListener("click", next, false);
+    document.getElementById("sw5").addEventListener("click", stop, false);
+
+
+    document.getElementById("sn").addEventListener("click", narouBrowse, false);
+    document.getElementById("sk").addEventListener("click", kakuyomuBrowse, false);
+    document.getElementById("sg").addEventListener("click", googleBrowse, false);
+    
+    
+    })
+
+//ookie:USERKEY=605aa9d0809c7c6b738f4a3f3adce802; PRIVATE_MODE=error; _tt_enable_cookie=1; _ttp=h1df1PlI6U36rpxH-qh0xx7Iz78; _fbp=fb.1.1688321949255.1868391017; __lt__cid=20ab7066-4237-4698-8ff3-f6eb081c8cc0; alarmchk=1; au_id=a16b5c4d6c335e8172b6dd7318917d467b3-7a23; id_merge=1; _ga_JFJ6KP9LEM=GS1.1.1688409255.1.0.1688409264.51.0.0; _ga=GA1.1.675288176.1688321947; _yjsu_yjad=1689646755.71f83768-feb1-496f-8005-e7d4a2a71df1; p_id2=OOcHdhX2luc3RhbGw.; AUTOLOGIN=; LOGINKEY=638829b950e9bd9bb51dead17df27c1f_f7ea2e5c4bddd2de1d172996b3e888e4; _redirectrurl=Lw%3D%3D; SAVEID=; COMMENT_SORT=new; _gcl_au=1.1.749809700.1696435212; SITE_LANG=ko-KR; event_100_modal=0; NPK1008=OObWV0YQ..; REF_DATA=%2Fnovel%2F2393; __lt__sid=e37dc8c2-3d7e28b0; _ga_MBDFP7GFRG=GS1.1.1696754148.99.0.1696754148.60.0.0; _ga_JNNCJXPDKK=GS1.1.1696754148.99.0.1696754148.60.0.0; _ga_E57NBH6NLW=GS1.1.1696754148.98.0.1696754148.60.0.0; last_novel=%7B%22novel_no%22%3A2393%2C%22novel_type%22%3A%22novel%22%7D; cto_bundle=zir0JF95WFRtVDFDTW05ZlI4NUtsc29mNEZHVnVLMmhoZTZNSGNQUmFPd1MyNUpVam5EJTJGZHI3Q0VnZnpUVEFNSGxnVWN4Tm51Snc3aUhFNjJJb0RPWXBwamd3TnRkSWgzRTVqUEtZa3RReVFJNGxoOW1zaG5US2tkb096UUpwdXBRZlgyenFEcWEwRVdOU3N4SUpXY1dPJTJCS0RpdGl3SG10NDI4aFg4ZWtlSTRWOXgwTEZISiUyRiUyQkU0QVN0MFNBcTJJMzVqeFY5STB6SkpjTlNpNU5OWEw5bUNua3A1WWVZVUVPVHozRDRKYzhsM1dycHhaYVFKd2EzYVRtaUJtUVU1UWxvOWM
+//settimeoutで読み込みと読み上げを並行処理する。
+//キャッシュファイルで、数話分を読み込みして処理速度をアップする。次回アプリ立ち上げ時に前回終了時の小説を自動読み込み。
+//ncmbのDBでお気に入り機能を実装。
+//変数j,readnumをinput type:rangeで変更・反映する。
+//UIを洗練させる
+
+</script>
+<!--
+<script src="speak.js"></script>
+<script src="translate.js"></script>
+<script src="write.js"></script>
+<script src="getNovel.js"></script>
+-->
+</body>
+</html>

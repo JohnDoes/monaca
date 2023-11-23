@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <style>
+            body{
+                background: #81bcd8;
+            }
+            .site-header{
+                background: #fff;
+                display: flex;
+                padding: 10px 10px;
+                position: fixed;
+                justify-content: space-between;
+                width: 100%;
+            }
+            .content{
+                line-height: 1.1;
+                margin: 0 auto;
+                padding-top: 100px;
+                width: 95%;
+            }
+            .content p{
+                margin-bottom: 40px;
+            }
+            .site-footer{
+                background: #333;
+                padding: 80px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <header class="site-header">
+            <nav class="gnav">
+                <div class="gnav__menu">
+                    <div>
+                        <button id="sw1">再生</button>
+                        <button id="sw2">戻る</button>
+                        <button id="sw3">進む</button>
+                        <button id="sw4">次話</button>
+                        <button id="sw5">停止</button>
+                    </div>
+                    <div style="float:left">
+                        言語：
+                        <select id="lng" colspan="2">
+                            <option value="ja">ja</option>
+                            <option value="en-ja" selected>en-ja</option>
+                            <option value="fr-ja">fr-ja</option>
+                            <option value="de-ja">de-ja</option>
+                            <option value="ru-ja">ru-ja</option>
+                            <option value="cz-ja">cz-ja</option>
+                            <option value="kr-ja">kr-ja</option>
+                            <option value="ar-ja">ar-ja</option>
+                            <option value="it-ja">it-ja</option>
+                            <option value="fi-ja">fi-ja</option>
+                            <option value="en">en</option>
+                            <option value="fr">fr</option>
+                            <option value="de">de</option>
+                            <option value="ru">ru</option>
+                            <option value="cz">cz</option>
+                            <option value="kr">kr</option>
+                            <option value="ar">ar</option>
+                            <option value="it">it</option>
+                            <option value="fi">fi</option>
+                        </select>
+                </div>
+                <div style="float:left">
+                    速度：
+                    <select id="pitch">
+                        <option value="0.50">x0.5</option>
+                        <option value="0.75">x0.75</option>
+                        <option value="0.90">x0.9</option>
+                        <option value="1.00" selected>x1.0</option>
+                        <option value="1.10">x1.1</option>
+                        <option value="1.25">x1.25</option>
+                        <option value="1.50">x1.5</option>
+                        <option value="1.75">x1.75</option>
+                        <option value="2.00">x2.0</option>
+                        <option value="2.50">x2.5</option>
+                    </select>
+                </div><br />
+                <div>
+                    <p>目次URL:<input id="url" type="text" style="width: 70%;" value="https://kakuyomu.jp/works/16816700428600671727"></input></p>
+                    <p>第<input id="num" type="number" style="width: 100px;" value="1">話<button id="ck">表示</button></p>
+                </div>
+                </div>
+            </nav>
+        </header>
+        <div class="hero"><img src="images/hero.jpg" alt="hero"></div>
+        <div class="content">
+            <div id="origin">
+            </div>
+        </div>
+    </div>
+    </body>
+</html>

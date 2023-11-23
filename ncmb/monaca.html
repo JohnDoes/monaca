@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: content: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <script src="components/loader.js"></script>
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("deviceready", function(){
+            // APIキー
+            var applicationKey = "0d5966f480263439a4ab14a28a26cd0d074c4448b12e7554043d9c479ab745a3";
+            var clientKey = "6425a24f12ad75095143739f261570511c979a78753fe2a590f5297ba902c0b2";
+            // SDKの初期化
+            var ncmb = new NCMB(applicationKey, clientKey);
+
+            function loadPage() {
+                var nUrl = document.getElementById("url").value;
+                var nNum = document.getElementById("num").value;
+                console.log("ck1")
+                var kc = /kakuyomu/;
+                var nc = /ncode/;
+                console.log(nUrl.match(kc));
+                if(nUrl.match(kc)) {
+                    console.log("ck2");
+                    // メソッドチェーンでクエリストリングを付与し実行
+                    ncmb.Script
+                        .query({"url": nUrl})      // クエリストリングを指定
+                        .exec("GET", "kakuI.js")
+                        .then(function(res){
+                            console.log("ck3", JSON.parse(res.body));
+                            console.log("ck3", JSON.parse(res.body).body[parseInt(nNum) - 1]);
+
+                            // メソッドチェーンでクエリストリングを付与し実行
+                            ncmb.Script
+                                .query({"url": "https://kakuyomu.jp" + JSON.parse(res.body).body[parseInt(nNum) - 1]})      // クエリストリングを指定
+                                .exec("GET", "kaku.js")
+                                .then(function(res){
+                                    console.log("ck4", res);
+                                    trans(JSON.parse(res.body).title, JSON.parse(res.body).body);
+                                })
+                                .catch(function(err){
+                                    console.log("error2", err);
+                                });
+                        })
+                        .catch(function(err){
+                            console.log("error1", err);
+                        });
+                }
+
+                if(nUrl.match(nc)){
+                        console.log("ck4");
+
+                    // メソッドチェーンでクエリストリングを付与し実行
+                    ncmb.Script
+                        .query({"url": nUrl + "/" + nNum + "/"})      // クエリストリングを指定
+                        .exec("GET", "narou.js")
+                        .then(function(res){
+                            trans(JSON.parse(res.body).title, JSON.parse(res.body).body);
+                        })
+                        .catch(function(err){
+                            console.log("error3", err);
+                        });
+                    }
+
+            }
+            document.getElementById("ck").addEventListener("click", loadPage());
+        },false);
+
+            //function List
+            //loadpage
+            //tog
+            //start
+            //stop
+            //fore
+            //back
+            //next
+            //trans
+
+            function htmlToNode(htmlStr) {
+                if (!htmlStr || typeof htmlStr !== 'string') return;
+
+                var tmpElmt = document.createElement('div');
+
+                // 高速処理するが対応ブラウザを考えinnerHTMLを使用
+                tmpElmt.insertAdjacentHTML('beforeend', htmlStr);
+
+                return tmpElmt.childNodes;
+            };
+
+            function tog() {
+            }
+            function trans(t, b) {
+
+                var toLang = document.getElementById("lng1").value;
+                var optLang = document.getElementById("lng2").value;
+                console.log(toLang);
+                console.log(optLang);
+                document.getElementById("origin").innerHtml = "";
+                var j = 0;
+                for(let i = 0; i < t.length; i++) {
+                    var node = htmlToNode(t[i]);
+                    var txt = node.textContent;
+                        let dt = document.createElement('p');
+                        dt.insertAdjacentHTML('beforeend',t[i]);
+                        dt.id = j;
+                        j++;
+                        document.getElementById("origin").appendChild(dt);                
+                }
+                for(let i = 0; i < b.length; i++) {
+                        let dt = document.createElement('p');
+                        dt.insertAdjacentHTML('beforeend',b[i]);
+                        dt.id = j;
+                        j++;
+                        document.getElementById("origin").appendChild(dt);                
+                }
+            }
+
+
+    </script>
+</head>
+<body>
+<ul style="display: none;">
+    <li>
+        <p onclick="setUrl('https://kakuyomu.jp/works/16816410413969746341');">Vtuberってめんどくせぇ！</p>
+        <p onclick="setUrl('https://ncode.syosetu.com/n2273dh');">勇者召喚に巻き込まれたけど、異世界は平和でした</p>
+        <p onclick="setUrl('https://kakuyomu.jp/works/16816700428600671727');">引きこもりVTuberは伝えたい</p>
+    </li>
+</ul>
+<table border="1" style="width: 99%; height: 99%;">
+    <tr style="height:20px;">
+        <td><button id="sw1" onclick="tog();">再生</button></td>
+        <td><button onclick="back()">戻る</button></td>
+        <td><button onclick="fore()">進む</button></td>
+        <td><button onclick="next()">次話</button></td>
+        <td><button onclick="menu()">メニュー</button></td>
+    </tr>
+    <tr style="height:20px;">
+        <td>言語：</td>
+        <td>
+            <select id="lng1">
+                <option value="ja">ja</option>
+                <option value="en" selected>en</option>
+                <option value="fr">fr</option>
+                <option value="du">du</option>
+                <option value="ru">ru</option>
+                <option value="cz">cz</option>
+                <option value="kr">kr</option>
+                <option value="ar">ar</option>
+                <option value="it">it</option>
+                <option value="fi">fi</option>
+            </select>
+        </td>
+        <td>
+            <select id="lng2">
+                <option value="">　　</option>
+                <option value="ja" selected>-ja</option>
+            </select>
+        </td>
+        <td>
+            速度：
+        </td>
+        <td>
+            <select>
+                <option value="0.5">x0.5</option>
+                <option value="0.75">x0.75</option>
+                <option value="0.9">x0.9</option>
+                <option value="1.0" selected>x1.0</option>
+                <option value="1.1">x1.1</option>
+                <option value="1.25">x1.25</option>
+                <option value="1.5">x1.5</option>
+                <option value="1.75">x1.75</option>
+                <option value="2.0">x2.0</option>
+                <option value="2.5">x2.5</option>
+            </select>
+        </td>
+    </tr>
+    <tr style="height:20px;">
+        <td colspan="5">
+            <form>
+            <p>目次URL:<input id="url" type="text" style="width: 70%;" value="https://ncode.syosetu.com/n2273dh"></input></p>
+            <p>第<input id="num" type="number" style="width: 100px;" value="1">話<button id="ck">check</button></p>
+        </td>
+    </tr>
+    <tr style="height:600px;">
+        <td colspan="5" id="origin">
+        </td>
+    </tr>
+</table>
+</body>
+</html>
